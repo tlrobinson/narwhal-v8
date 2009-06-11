@@ -2,10 +2,12 @@ CPP			=g++
 CPPFLAGS	= -g 
 INCLUDES	= -Isrc -Iv8/include
 V8			=v8/libv8.dylib
+MODULES		=$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
+
 
 all: v8/libv8.dylib bin/narwhal-v8 modules
 
-modules: lib/foo.dylib
+modules: $(MODULES)
 
 bin/narwhal-v8: narwhal-v8.cc $(V8)
 	mkdir -p bin

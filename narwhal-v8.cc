@@ -35,6 +35,8 @@
 #include <stdarg.h>
 #include "macros.h"
 
+#include <sys/stat.h>
+
 void RunShell(v8::Handle<v8::Context> context);
 bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
@@ -48,6 +50,7 @@ v8::Handle<v8::Value> Version(const v8::Arguments& args);
 v8::Handle<v8::String> ReadFile(const char* name);
 void ReportException(v8::TryCatch* handler);
 
+v8::Handle<v8::Value> IsFile(const v8::Arguments& args);
 v8::Handle<v8::Value> Require(const v8::Arguments& args);
 
 int RunMain(int argc, char* argv[]) {
@@ -66,6 +69,7 @@ int RunMain(int argc, char* argv[]) {
   // Bind the 'version' function
   global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
   global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
+  global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
   // Create a new execution environment containing the built-in
   // functions
   v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
@@ -344,3 +348,17 @@ v8::Handle<v8::Value> Require(const v8::Arguments& args) {
     return JS_fn(func);
 }
 END
+
+
+v8::Handle<v8::Value> IsFile(const v8::Arguments& args) {
+    v8::HandleScope handle_scope;
+    v8::String::Utf8Value str(args[0]);
+
+	struct stat stat_info;
+	// TODO: Check errors
+	if (stat(ToCString(str), &stat_info) != -1) {
+		return v8::Boolean::New(S_ISREG(stat_info.st_mode));
+	} else {
+		return v8::Boolean::New(0);
+	}
+}

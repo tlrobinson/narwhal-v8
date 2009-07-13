@@ -1,7 +1,7 @@
 (function (evalGlobal, global) {
 
     var prefix = "/Users/tlrobinson/git/narwhal";//ENV["NARWHAL_HOME"];
-    var debug = false;
+    var debug = true;
 
     var _isFile = isFile, _read = read, _print = print;
     delete read, isFile, print;
@@ -46,4 +46,4 @@
     return eval(arguments[0]);
 }, this);
 
-quit(0);
+//quit(0);

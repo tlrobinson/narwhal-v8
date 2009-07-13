@@ -1,8 +1,9 @@
-CPP			=g++
-CPPFLAGS	= -g 
-INCLUDES	= -Isrc -Iv8/include
-V8			=v8/libv8.dylib
-MODULES		=$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
+CPP       =g++
+CPPFLAGS  =-g 
+INCLUDES  =-Iv8/include -Iinclude
+V8        =v8/libv8.dylib
+LIBS      =-lreadline
+MODULES   =$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
 
 
 all: v8/libv8.dylib bin/narwhal-v8 modules
@@ -11,7 +12,7 @@ modules: $(MODULES)
 
 bin/narwhal-v8: narwhal-v8.cc $(V8)
 	mkdir -p bin
-	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $@ narwhal-v8.cc $(V8)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $@ narwhal-v8.cc $(V8) $(LIBS)
 
 lib/%.dylib: src/%.cc
 	mkdir -p lib

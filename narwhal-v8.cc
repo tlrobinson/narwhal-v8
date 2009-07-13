@@ -33,8 +33,10 @@
 
 #include <dlfcn.h>
 #include <stdarg.h>
-#include "macros.h"
+#include <readline/readline.h>
+#include <readline/history.h>
 
+#include <k7macros.h>
 #include <sys/stat.h>
 
 void RunShell(v8::Handle<v8::Context> context);
@@ -75,6 +77,7 @@ int RunMain(int argc, char* argv[]) {
   v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
   // Enter the newly created execution environment.
   v8::Context::Scope context_scope(context);
+  /*
   bool run_shell = (argc == 1);
   for (int i = 1; i < argc; i++) {
     const char* str = argv[i];
@@ -108,6 +111,33 @@ int RunMain(int argc, char* argv[]) {
     }
   }
   if (run_shell) RunShell(context);
+  */
+  
+  char *BOOTSTRAP_JS = "bootstrap.js";
+  char *NARWHAL_PLATFORM_HOME = getenv("NARWHAL_PLATFORM_HOME");
+  
+  char *bootstrapPath = (char*)malloc(strlen(BOOTSTRAP_JS) + 1 + strlen(NARWHAL_PLATFORM_HOME) + 1);
+  if (!bootstrapPath) {
+    printf("Error allocating bootstrapPath\n");
+    return 1;
+  }
+  
+  sprintf(bootstrapPath, "%s/%s", NARWHAL_PLATFORM_HOME, BOOTSTRAP_JS);
+  
+  v8::Handle<v8::String> file_name = v8::String::New(bootstrapPath);
+  v8::Handle<v8::String> source = ReadFile(bootstrapPath);
+  
+  free(bootstrapPath);
+  
+  if (source.IsEmpty()) {
+    printf("Error reading bootstrap.js\n");
+    return 1;
+  }
+  if (!ExecuteString(source, file_name, false, true))
+    return 1;
+    
+  RunShell(context);
+  
   return 0;
 }
 
@@ -228,18 +258,25 @@ v8::Handle<v8::String> ReadFile(const char* name) {
 
 // The read-eval-execute loop of the shell.
 void RunShell(v8::Handle<v8::Context> context) {
-  printf("V8 version %s\n", v8::V8::GetVersion());
-  static const int kBufferSize = 256;
+  printf("Narwhal version %s, V8 version %s\n", "0.1", v8::V8::GetVersion());
+  //static const int kBufferSize = 256;
   while (true) {
-    char buffer[kBufferSize];
-    printf("> ");
-    char* str = fgets(buffer, kBufferSize, stdin);
+    //char buffer[kBufferSize];
+    //printf("> ");
+    //char* str = fgets(buffer, kBufferSize, stdin);
+    
+    char *str = readline("> ");
+    if (str && *str)
+      add_history(str);
+    
     if (str == NULL) break;
     v8::HandleScope handle_scope;
     ExecuteString(v8::String::New(str),
                   v8::String::New("(shell)"),
                   true,
                   true);
+                  
+    free(str);
   }
   printf("\n");
 }

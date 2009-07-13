@@ -39,6 +39,10 @@
 #include <k7macros.h>
 #include <sys/stat.h>
 
+extern "C" int global_argc = 0;
+extern "C" char** global_argv = NULL;
+extern "C" char** global_envp = NULL;
+
 void RunShell(v8::Handle<v8::Context> context);
 bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
@@ -55,7 +59,7 @@ void ReportException(v8::TryCatch* handler);
 v8::Handle<v8::Value> IsFile(const v8::Arguments& args);
 v8::Handle<v8::Value> Require(const v8::Arguments& args);
 
-int RunMain(int argc, char* argv[]) {
+int RunMain(int argc, char* argv[], char* envp[]) {
   v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
   v8::HandleScope handle_scope;
   // Create a template for the global object.
@@ -72,11 +76,13 @@ int RunMain(int argc, char* argv[]) {
   global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
   global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
   global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
+  
   // Create a new execution environment containing the built-in
   // functions
   v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
   // Enter the newly created execution environment.
   v8::Context::Scope context_scope(context);
+  
   /*
   bool run_shell = (argc == 1);
   for (int i = 1; i < argc; i++) {
@@ -113,6 +119,10 @@ int RunMain(int argc, char* argv[]) {
   if (run_shell) RunShell(context);
   */
   
+  global_argc = argc;
+  global_argv = argv;
+  global_envp = envp;
+  
   char *BOOTSTRAP_JS = "bootstrap.js";
   char *NARWHAL_PLATFORM_HOME = getenv("NARWHAL_PLATFORM_HOME");
   
@@ -142,8 +152,8 @@ int RunMain(int argc, char* argv[]) {
 }
 
 
-int main(int argc, char* argv[]) {
-  int result = RunMain(argc, argv);
+int main(int argc, char* argv[], char* envp[]) {
+  int result = RunMain(argc, argv, envp);
   v8::V8::Dispose();
   return result;
 }

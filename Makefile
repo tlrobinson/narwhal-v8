@@ -1,5 +1,5 @@
 CPP       =g++
-CPPFLAGS  =-g 
+CPPFLAGS  =
 INCLUDES  =-Iv8/include -Iinclude
 V8        =v8/libv8.dylib
 LIBS      =-lreadline

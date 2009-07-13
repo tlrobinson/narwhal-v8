@@ -15,6 +15,6 @@ END
 
 NARWHAL_MODULE(foo)
 
-    OBJECT_SET(Exports, "bar", JS_fn(Bar));
+    EXPORTS("bar", JS_fn(Bar));
     
 END_NARWHAL_MODULE

@@ -52,4 +52,6 @@ extern v8::Handle<v8::Object> require(const char * id);
 #define END_NARWHAL_MODULE \
     return JS_undefined;}\
 
+#define EXPORTS(name, object) OBJECT_SET(Exports, name, object);
+
 #endif

@@ -1,0 +1,6 @@
+bin
+lib/*.dylib
+lib/*.dylib.dSYM
+lib/*.so
+lib/*.dll
+v8

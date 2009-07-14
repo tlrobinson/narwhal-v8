@@ -4,3 +4,4 @@ lib/*.dylib.dSYM
 lib/*.so
 lib/*.dll
 v8
+.DS_Store

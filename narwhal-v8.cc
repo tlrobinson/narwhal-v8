@@ -25,7 +25,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <v8.h>
+#include <v8-debug.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
@@ -39,9 +39,9 @@
 #include <k7macros.h>
 #include <sys/stat.h>
 
-extern "C" int global_argc = 0;
-extern "C" char** global_argv = NULL;
-extern "C" char** global_envp = NULL;
+int global_argc = 0;
+char** global_argv = NULL;
+char** global_envp = NULL;
 
 void RunShell(v8::Handle<v8::Context> context);
 bool ExecuteString(v8::Handle<v8::String> source,
@@ -76,6 +76,8 @@ int RunMain(int argc, char* argv[], char* envp[]) {
   global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
   global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
   global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
+  
+  //v8::Debug::EnableAgent("narwhal-v8", 5858);
   
   // Create a new execution environment containing the built-in
   // functions
@@ -123,27 +125,20 @@ int RunMain(int argc, char* argv[], char* envp[]) {
   global_argv = argv;
   global_envp = envp;
   
-  char *BOOTSTRAP_JS = "bootstrap.js";
-  char *NARWHAL_PLATFORM_HOME = getenv("NARWHAL_PLATFORM_HOME");
+  char buffer[1024];
   
-  char *bootstrapPath = (char*)malloc(strlen(BOOTSTRAP_JS) + 1 + strlen(NARWHAL_PLATFORM_HOME) + 1);
-  if (!bootstrapPath) {
-    printf("Error allocating bootstrapPath\n");
+  snprintf(buffer, sizeof(buffer), "NARWHAL_HOME='%s';", getenv("NARWHAL_HOME"));
+  if (!ExecuteString(v8::String::New(buffer), v8::String::New("[setup]"), false, true))
     return 1;
-  }
-  
-  sprintf(bootstrapPath, "%s/%s", NARWHAL_PLATFORM_HOME, BOOTSTRAP_JS);
-  
-  v8::Handle<v8::String> file_name = v8::String::New(bootstrapPath);
-  v8::Handle<v8::String> source = ReadFile(bootstrapPath);
-  
-  free(bootstrapPath);
+
+  snprintf(buffer, sizeof(buffer), "%s/bootstrap.js", getenv("NARWHAL_PLATFORM_HOME"));
+  v8::Handle<v8::String> source = ReadFile(buffer);
   
   if (source.IsEmpty()) {
     printf("Error reading bootstrap.js\n");
     return 1;
   }
-  if (!ExecuteString(source, file_name, false, true))
+  if (!ExecuteString(source, v8::String::New(buffer), false, true))
     return 1;
     
   RunShell(context);

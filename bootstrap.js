@@ -1,12 +1,14 @@
 (function (evalGlobal, global) {
 
-    var prefix = "/Users/tlrobinson/git/narwhal";//ENV["NARWHAL_HOME"];
     var debug = true;
+
+    var prefix = NARWHAL_HOME;
+    delete NARWHAL_HOME;
 
     var _isFile = isFile, _read = read, _print = print;
     delete read, isFile, print;
     
-    function NativeLoader(){
+    function NativeLoader() {
         var loader = {};
         var factories = {};
         
@@ -39,11 +41,9 @@
             isFile: function(path) { return _isFile(path); }
         },
         prefix: prefix,
-        loaders : [[".dylib", NativeLoader()]]
+        loaders: [[".dylib", NativeLoader()]]
     });
 
 })(function () {
     return eval(arguments[0]);
 }, this);
-
-//quit(0);

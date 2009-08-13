@@ -38,6 +38,8 @@
 
 #include <k7macros.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <libgen.h>
 
 int global_argc = 0;
 char** global_argv = NULL;
@@ -60,90 +62,102 @@ v8::Handle<v8::Value> IsFile(const v8::Arguments& args);
 v8::Handle<v8::Value> Require(const v8::Arguments& args);
 
 int RunMain(int argc, char* argv[], char* envp[]) {
-  v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-  v8::HandleScope handle_scope;
-  // Create a template for the global object.
-  v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
-  // Bind the global 'print' function to the C++ Print callback.
-  global->Set(v8::String::New("print"), v8::FunctionTemplate::New(Print));
-  // Bind the global 'read' function to the C++ Read callback.
-  global->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
-  // Bind the global 'load' function to the C++ Load callback.
-  global->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
-  // Bind the 'quit' function
-  global->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
-  // Bind the 'version' function
-  global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
-  global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
-  global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
-  
-  //v8::Debug::EnableAgent("narwhal-v8", 5858);
-  
-  // Create a new execution environment containing the built-in
-  // functions
-  v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
-  // Enter the newly created execution environment.
-  v8::Context::Scope context_scope(context);
-  
-  /*
-  bool run_shell = (argc == 1);
-  for (int i = 1; i < argc; i++) {
-    const char* str = argv[i];
-    if (strcmp(str, "--shell") == 0) {
-      run_shell = true;
-    } else if (strcmp(str, "-f") == 0) {
-      // Ignore any -f flags for compatibility with the other stand-
-      // alone JavaScript engines.
-      continue;
-    } else if (strncmp(str, "--", 2) == 0) {
-      printf("Warning: unknown flag %s.\nTry --help for options\n", str);
-    } else if (strcmp(str, "-e") == 0 && i + 1 < argc) {
-      // Execute argument given to -e option directly
-      v8::HandleScope handle_scope;
-      v8::Handle<v8::String> file_name = v8::String::New("unnamed");
-      v8::Handle<v8::String> source = v8::String::New(argv[i + 1]);
-      if (!ExecuteString(source, file_name, false, true))
+    v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+    v8::HandleScope handle_scope;
+    // Create a template for the global object.
+    v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+    // Bind the global 'print' function to the C++ Print callback.
+    global->Set(v8::String::New("print"), v8::FunctionTemplate::New(Print));
+    // Bind the global 'read' function to the C++ Read callback.
+    global->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
+    // Bind the global 'load' function to the C++ Load callback.
+    global->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
+    // Bind the 'quit' function
+    global->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
+    // Bind the 'version' function
+    global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
+    global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
+    global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
+
+    //v8::Debug::EnableAgent("narwhal-v8", 5858);
+
+    // Create a new execution environment containing the built-in
+    // functions
+    v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
+    // Enter the newly created execution environment.
+    v8::Context::Scope context_scope(context);
+
+    global_argc = argc;
+    global_argv = argv;
+    global_envp = envp;
+    
+    // TODO: cleanup all this. strcpy, sprintf, etc BAD!
+    char buffer[1024];
+    
+    // start with the executable name from argv[0]
+    char *executable = argv[0];
+
+    // follow any symlinks
+    size_t len;
+    while ((int)(len = readlink(executable, buffer, sizeof(buffer))) >= 0) {
+        buffer[len] = '\0';
+        // make relative to symlink's directory
+        if (buffer[0] != '/') {
+            char tmp[1024];
+            strcpy(tmp, buffer);
+            sprintf(buffer, "%s/%s", dirname(executable), tmp);
+        }
+        executable = buffer;
+    }
+    
+    // make absolute
+    if (executable[0] != '/') {
+        char tmp[1024];
+        getcwd(tmp, sizeof(tmp));
+        sprintf(buffer, "%s/%s", tmp, executable);
+        executable = buffer;
+    }
+    
+    char NARWHAL_HOME[1024], NARWHAL_ENGINE_HOME[1024];
+
+    // try getting NARWHAL_ENGINE_HOME from env variable. fall back to 2nd ancestor of executable path
+    if (getenv("NARWHAL_ENGINE_HOME"))
+        strcpy(NARWHAL_ENGINE_HOME, getenv("NARWHAL_ENGINE_HOME"));
+    else
+        strcpy(NARWHAL_ENGINE_HOME, dirname(dirname(executable)));
+
+    // try getting NARWHAL_HOME from env variable. fall back to 2nd ancestor of NARWHAL_ENGINE_HOME
+    if (getenv("NARWHAL_HOME"))
+        strcpy(NARWHAL_HOME, getenv("NARWHAL_HOME"));
+    else
+        strcpy(NARWHAL_HOME, dirname(dirname(NARWHAL_ENGINE_HOME)));
+
+    // inject NARWHAL_HOME and NARWHAL_ENGINE_HOME
+    snprintf(buffer, sizeof(buffer), "NARWHAL_HOME='%s';", NARWHAL_HOME);
+    if (!ExecuteString(v8::String::New(buffer), v8::String::New("[setup:NARWHAL_HOME]"), false, true))
         return 1;
-      i++;
-    } else {
-      // Use all other arguments as names of files to load and run.
-      v8::HandleScope handle_scope;
-      v8::Handle<v8::String> file_name = v8::String::New(str);
-      v8::Handle<v8::String> source = ReadFile(str);
-      if (source.IsEmpty()) {
-        printf("Error reading '%s'\n", str);
+
+    snprintf(buffer, sizeof(buffer), "NARWHAL_ENGINE_HOME='%s';", NARWHAL_ENGINE_HOME);
+    if (!ExecuteString(v8::String::New(buffer), v8::String::New("[setup:NARWHAL_ENGINE_HOME]"), false, true))
         return 1;
-      }
-      if (!ExecuteString(source, file_name, false, true))
+
+    // read and execute bootstrap.js
+    snprintf(buffer, sizeof(buffer), "%s/bootstrap.js", NARWHAL_ENGINE_HOME);
+    v8::Handle<v8::String> source = ReadFile(buffer);
+    
+    if (source.IsEmpty()) {
+        printf("Error reading bootstrap.js from %s\n", buffer);
         return 1;
     }
-  }
-  if (run_shell) RunShell(context);
-  */
-  
-  global_argc = argc;
-  global_argv = argv;
-  global_envp = envp;
-  
-  char buffer[1024];
-  
-  snprintf(buffer, sizeof(buffer), "NARWHAL_HOME='%s';", getenv("NARWHAL_HOME"));
-  if (!ExecuteString(v8::String::New(buffer), v8::String::New("[setup]"), false, true))
-    return 1;
+    if (!ExecuteString(source, v8::String::New(buffer), false, true)) {
+        printf("Error executing bootstrap.js from %s\n", buffer);
+        return 1;
+    }
 
-  snprintf(buffer, sizeof(buffer), "%s/bootstrap.js", getenv("NARWHAL_PLATFORM_HOME"));
-  v8::Handle<v8::String> source = ReadFile(buffer);
-  
-  if (source.IsEmpty()) {
-    printf("Error reading bootstrap.js\n");
-    return 1;
-  }
-  if (!ExecuteString(source, v8::String::New(buffer), false, true))
-    return 1;
-    
-  RunShell(context);
-  
-  return 0;
+    // run the shell. eventually this will be replaced by narwhal's REPL.
+    RunShell(context);
+
+    return 0;
 }
 
 

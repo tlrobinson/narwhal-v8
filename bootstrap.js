@@ -2,8 +2,23 @@
 
     var debug = true;
 
-    var prefix = NARWHAL_HOME;
-    delete NARWHAL_HOME;
+    var prefix = "";
+    if (typeof NARWHAL_HOME != "undefined") {
+        prefix = NARWHAL_HOME;
+        delete NARWHAL_HOME;
+    } else {
+        print("Warning: NARWHAL_HOME unknown!");
+    }
+
+    var enginePrefix = "";
+    if (typeof NARWHAL_ENGINE_HOME != "undefined") {
+        enginePrefix = NARWHAL_ENGINE_HOME;
+        delete NARWHAL_ENGINE_HOME;
+    } else {
+        print("Warning: NARWHAL_ENGINE_HOME unknown!");
+    }
+
+    var prefixes = [enginePrefix, prefix];
 
     var _isFile = isFile, _read = read, _print = print;
     delete read, isFile, print;
@@ -29,8 +44,8 @@
     eval(_read(prefix + "/narwhal.js"))({
         global: global,
         evalGlobal: evalGlobal,
-        platform: 'v8',
-        platforms: ['v8', 'c', 'default'],
+        engine: 'v8',
+        engines: ['v8', 'c', 'default'],
         debug: debug,
         print: function (string) { _print(String(string)); },
         evaluate: function (text) {
@@ -41,6 +56,7 @@
             isFile: function(path) { return _isFile(path); }
         },
         prefix: prefix,
+        prefixes: prefixes,
         loaders: [[".dylib", NativeLoader()]]
     });
 

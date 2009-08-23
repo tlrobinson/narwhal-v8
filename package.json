@@ -1,4 +1,8 @@
 {
     "name": "narwhal-v8",
-    "engine": "v8"
+    "dependencies": ["narwhal"],
+    "engine": "v8",
+    "author": "Tom Robinson (http://tlrobinson.net/)",
+    "description": "V8 engine support for Narwhal",
+    "keywords": ["narwhal", "engine", "v8", "google"]
 }

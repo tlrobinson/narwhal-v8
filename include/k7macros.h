@@ -81,6 +81,9 @@ using namespace v8;
 #define PSTR(n)             0; if (args.Length()<++_argn) {\
                                 THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
                             v8::String::AsciiValue n(args[_argn-1]); 0
+#define PUTF8(n)            0; if (args.Length()<++_argn) {\
+                                THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
+                            v8::String::Utf8Value n(args[_argn-1]); 0
 #define POBJ(n)             0; if (args.Length()<++_argn || !args[_argn-1]->IsObject()) {\
                                 THROW_VERB("Argument %i of %s, must be an object\n",_argn,FUN_NAME);} \
                             v8::Handle<v8::Object> n (args[_argn-1]->ToObject()); 0

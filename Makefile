@@ -1,7 +1,7 @@
 CPP       =g++
 CPPFLAGS  =
 INCLUDES  =-Iv8/include -Iinclude
-LIBS      =-lreadline
+LIBS      =-lreadline -L/usr/lib -liconv
 MODULES   =$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
 
 # change to libv8_g.dylib for debug version:
@@ -21,7 +21,7 @@ bin/narwhal-v8: narwhal-v8.cc $(V8)
 
 lib/%.dylib: src/%.cc
 	mkdir -p lib
-	$(CPP) $(CPPFLAGS) $(INCLUDES) -dynamiclib -o $@ $< $(V8)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) -dynamiclib -o $@ $< $(V8) $(LIBS)
 	# comment out these lines to use installed system V8
 	install_name_tool -change "$(V8NAME)" "@executable_path/$(V8NAME)" $@
 

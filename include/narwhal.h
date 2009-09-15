@@ -54,4 +54,9 @@ extern v8::Handle<v8::Object> require(const char * id);
 
 #define EXPORTS(name, object) OBJECT_SET(Exports, name, object);
 
+#define DESTRUCTOR(f) void f(Persistent<Value> value, void *) \
+    { Local<Object> object = value->ToObject(); \
+
+#define JS_str_utf8(str, len) v8::String::New(str, len)
+
 #endif

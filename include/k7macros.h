@@ -109,9 +109,17 @@ using namespace v8;
 #define END                     }
 #define THIS                    args.This()
 #define STUB                    return ThrowException(Exception::Error(String::New("Stub - Function not implemented")));
-#define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
-#define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
-                                type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
+
+
+//#define SET_INTERNAL(ptr)       args.This()->SetInternalField(0, External::New((void*)ptr));
+//#define GET_INTERNAL(type,var)  Local<Value> _intfld = args.This()->GetInternalField(0); \
+//                                type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
+
+#define GET_INTERNAL(type, name, object) \
+    type name = reinterpret_cast<type>(Handle<External>::Cast(object->GetInternalField(0))->Value())
+#define SET_INTERNAL(object, data) \
+    object->SetInternalField(0, External::New((void*)data))
+
 #define RETURN_SCOPED(x)        return handlescope.Close(x)
 #define RETURN_INT(i)           return handlescope.Close(Integer::New(i))
 #define RETURN_WRAPPED(ptr)     return v8::External::New(ptr)
@@ -174,9 +182,9 @@ v8::Handle<Object> name(__VA_ARGS__) { \
         v8::Handle<v8::ObjectTemplate>    __object__     = __class__->InstanceTemplate(); \
         v8::Handle<v8::ObjectTemplate>    self           = __object__; \
         __class__->SetClassName(v8::String::New(name)); 
-#define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
-#define DESTRUCTOR(d)        Persistent<Object> _weak_handle = Persistent<Object>::New(__object__); \
-                             _weak_handle.MakeWeak(NULL, d);
+//#define CONSTRUCTOR(c)       __class__->SetCallHandler(c);
+//#define DESTRUCTOR(d)        Persistent<Object> _weak_handle = Persistent<Object>::New(__object__); \
+//                             _weak_handle.MakeWeak(NULL, d);
 #define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i);
 #define HAS_INTERNAL         __object__->SetInternalFieldCount(1);
 #define END_CLASS            __module__->Set(__class_name__,__class__->GetFunction(),v8::PropertyAttribute(v8::ReadOnly|v8::DontDelete));}

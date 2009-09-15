@@ -377,8 +377,8 @@ v8::Handle<v8::Value> Require(const v8::Arguments& args) {
     v8::HandleScope handlescope;
     
 	ARG_COUNT(2)
-	ARG_utf8(topId,0);
-    ARG_utf8(path,1);
+	ARGN_UTF8(topId,0);
+    ARGN_UTF8(path,1);
     
     void *handle = dlopen(*path, RTLD_LOCAL | RTLD_LAZY);
     //printf("handle=%p\n", handle);

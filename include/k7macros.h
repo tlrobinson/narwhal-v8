@@ -53,45 +53,44 @@ using namespace v8;
 #define ARG_COUNT(c)                   if ( args.Length() != c ) { \
                                        return ThrowException(String::New("Insufficient arguments")); } 
 #define ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
-#define ARG_int(n,c)                   int n=(int)(args[c]->Int32Value())
-#define ARG_str(v,i)                   v8::String::AsciiValue v(args[i]);
-#define ARG_utf8(v,i)                  v8::String::Utf8Value  v(args[i])
-#define ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
-#define ARG_obj(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
-#define ARG_array(name, c) \
+#define ARGN_INT(n,c)                   int n=(int)(args[c]->Int32Value())
+#define ARGN_STR(v,i)                   v8::String::AsciiValue v(args[i]);
+#define ARGN_UTF8(v,i)                  v8::String::Utf8Value  v(args[i])
+#define ARGN_OBJ(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
+#define ARGN_OBJ(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
+#define ARGN_ARRAY(name, c) \
         if (!args[(c)]->IsArray()) { \
             //std::ostringstream __k7_e; \
             //__k7_e << "Exception: argument error." << __func__ << " expects array for argument " << c << "."; \
             //return ThrowException(String::New(__k7_e.str().c_str())); \
         } \
         Handle<Array> name = Handle<Array>::Cast(args[(c)])
-#define ARG_fn(name, c) \
+#define ARGN_FN(name, c) \
         Handle<Function> name = Handle<Function>::Cast(args[(c)])
 
-#define THROW(str)              return ThrowException(String::New(str))
-#define THROW_VERB(tmpl,...)    { char msg[1024]; snprintf(msg,1000,tmpl,__VA_ARGS__); THROW(msg); }
-// performance freaks use this THROW_VERB :)
-//#define THROW_VERB(tmpl,...)  THROW("Invocation error")
+#define THROW(tmpl,...) \
+    { char msg[1024]; snprintf(msg, 1024, tmpl, __VA_ARGS__); \
+    return ThrowException(String::New(msg)); }
 
 #define FUN_NAME            (*String::AsciiValue(args.Callee()->GetName()->ToString()))
-
-#define PINT(n)             0; if (args.Length()<++_argn || !args[_argn-1]->IsInt32()) {\
-                                THROW_VERB("Argument %i of %s, must be an integer\n",_argn,FUN_NAME);} \
+                            
+#define ARG_INT(n)          0; if (args.Length()<++_argn || !args[_argn-1]->IsInt32()) {\
+                            THROW_VERB("Argument %i of %s, must be an integer\n",_argn,FUN_NAME);} \
                             int n=(int)(args[_argn-1]->Int32Value()); 0
-#define PSTR(n)             0; if (args.Length()<++_argn) {\
-                                THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
+#define ARG_STR(n)          0; if (args.Length()<++_argn) {\
+                            THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
                             v8::String::AsciiValue n(args[_argn-1]); 0
-#define PUTF8(n)            0; if (args.Length()<++_argn) {\
-                                THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
+#define ARG_UTF8(n)         0; if (args.Length()<++_argn) {\
+                            THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
                             v8::String::Utf8Value n(args[_argn-1]); 0
-#define POBJ(n)             0; if (args.Length()<++_argn || !args[_argn-1]->IsObject()) {\
-                                THROW_VERB("Argument %i of %s, must be an object\n",_argn,FUN_NAME);} \
+#define ARG_OBJ(n)          0; if (args.Length()<++_argn || !args[_argn-1]->IsObject()) {\
+                            THROW_VERB("Argument %i of %s, must be an object\n",_argn,FUN_NAME);} \
                             v8::Handle<v8::Object> n (args[_argn-1]->ToObject()); 0
-#define PFUN(n)             0; if (args.Length()<++_argn || !args[_argn-1]->IsFunction()) {\
-                                THROW_VERB("Argument %i of %s, must be a function\n",_argn,FUN_NAME);} \
+#define ARG_FN(n)           0; if (args.Length()<++_argn || !args[_argn-1]->IsFunction()) {\
+                            THROW_VERB("Argument %i of %s, must be a function\n",_argn,FUN_NAME);} \
                             v8::Handle<v8::Function> n (v8::Function::Cast(*args[_argn-1])); 0
-#define PWRAP(type,var)   0; if (args.Length()<++_argn || !args[_argn-1]->IsExternal()) {\
-                                THROW_VERB("Argument %i of %s, must be an external\n",_argn,FUN_NAME);} \
+#define ARG_WRAP(type,var)  0; if (args.Length()<++_argn || !args[_argn-1]->IsExternal()) {\
+                            THROW_VERB("Argument %i of %s, must be an external\n",_argn,FUN_NAME);} \
                             type* var = (type*) v8::External::Cast(*args[_argn-1])->Value(); 0
 
 // ----------------------------------------------------------------------------

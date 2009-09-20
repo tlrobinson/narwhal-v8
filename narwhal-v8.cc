@@ -36,10 +36,11 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <k7macros.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libgen.h>
+
+#include <narwhal.h>
 
 int global_argc = 0;
 char** global_argv = NULL;
@@ -372,15 +373,13 @@ typedef v8::Handle<v8::Object> (*module_builder_t)(v8::Handle<v8::Object> __modu
 typedef v8::Handle<v8::Value> (*factory_t)(const v8::Arguments&);
 typedef const char *(*getModuleName_t)(void);
 
-v8::Handle<v8::Value> Require(const v8::Arguments& args) {
-{    
-    v8::HandleScope handlescope;
-    
+FUNCTION(Require)
+{
 	ARG_COUNT(2)
 	ARGN_UTF8(topId,0);
     ARGN_UTF8(path,1);
     
-    void *handle = dlopen(*path, RTLD_LOCAL | RTLD_LAZY);
+    void *handle = dlopen(path, RTLD_LOCAL | RTLD_LAZY);
     //printf("handle=%p\n", handle);
     if (handle == NULL) {
         printf("dlopen error: %s\n", dlerror());

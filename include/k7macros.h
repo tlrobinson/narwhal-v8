@@ -54,8 +54,8 @@ using namespace v8;
                                        return ThrowException(String::New("Insufficient arguments")); } 
 #define ARG_BETWEEN(a,b)               if ( a <= args.Length() <= b ) {} 
 #define ARGN_INT(n,c)                   int n=(int)(args[c]->Int32Value())
-#define ARGN_STR(v,i)                   v8::String::AsciiValue v(args[i]);
-#define ARGN_UTF8(v,i)                  v8::String::Utf8Value  v(args[i])
+//#define ARGN_STR(v,i)                   v8::String::AsciiValue v(args[i]);
+//#define ARGN_UTF8(v,i)                  v8::String::Utf8Value  v(args[i])
 #define ARGN_OBJ(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
 #define ARGN_OBJ(v,i)                   v8::Local<v8::Object> v=args[i]->ToObject();
 #define ARGN_ARRAY(name, c) \
@@ -67,30 +67,32 @@ using namespace v8;
         Handle<Array> name = Handle<Array>::Cast(args[(c)])
 #define ARGN_FN(name, c) \
         Handle<Function> name = Handle<Function>::Cast(args[(c)])
-
+/*
 #define THROW(tmpl,...) \
-    { char msg[1024]; snprintf(msg, 1024, tmpl, __VA_ARGS__); \
+    { char msg[1024]; snprintf(msg, 1024, tmpl, #__VA_ARGS__); \
     return ThrowException(String::New(msg)); }
-
+*/
 #define FUN_NAME            (*String::AsciiValue(args.Callee()->GetName()->ToString()))
                             
 #define ARG_INT(n)          0; if (args.Length()<++_argn || !args[_argn-1]->IsInt32()) {\
-                            THROW_VERB("Argument %i of %s, must be an integer\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s, must be an integer\n",_argn,FUN_NAME);} \
                             int n=(int)(args[_argn-1]->Int32Value()); 0
+/*
 #define ARG_STR(n)          0; if (args.Length()<++_argn) {\
-                            THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
                             v8::String::AsciiValue n(args[_argn-1]); 0
 #define ARG_UTF8(n)         0; if (args.Length()<++_argn) {\
-                            THROW_VERB("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s must be a string\n",_argn,FUN_NAME);} \
                             v8::String::Utf8Value n(args[_argn-1]); 0
+*/
 #define ARG_OBJ(n)          0; if (args.Length()<++_argn || !args[_argn-1]->IsObject()) {\
-                            THROW_VERB("Argument %i of %s, must be an object\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s, must be an object\n",_argn,FUN_NAME);} \
                             v8::Handle<v8::Object> n (args[_argn-1]->ToObject()); 0
 #define ARG_FN(n)           0; if (args.Length()<++_argn || !args[_argn-1]->IsFunction()) {\
-                            THROW_VERB("Argument %i of %s, must be a function\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s, must be a function\n",_argn,FUN_NAME);} \
                             v8::Handle<v8::Function> n (v8::Function::Cast(*args[_argn-1])); 0
 #define ARG_WRAP(type,var)  0; if (args.Length()<++_argn || !args[_argn-1]->IsExternal()) {\
-                            THROW_VERB("Argument %i of %s, must be an external\n",_argn,FUN_NAME);} \
+                            THROW("Argument %i of %s, must be an external\n",_argn,FUN_NAME);} \
                             type* var = (type*) v8::External::Cast(*args[_argn-1])->Value(); 0
 
 // ----------------------------------------------------------------------------
@@ -98,7 +100,7 @@ using namespace v8;
 // FUNCTIONS MACROS
 //
 // ----------------------------------------------------------------------------
-
+/*
 #define FUNCTION_DECL(f)        static v8::Handle<v8::Value> f(const v8::Arguments&);
 #define FUNCTION(f,...)         static v8::Handle<v8::Value> f(const v8::Arguments& args) { \
                                     v8::HandleScope handlescope; \
@@ -107,6 +109,8 @@ using namespace v8;
 #define FUNCTION_C(f)           static v8::Handle<v8::Value> f(const v8::Arguments& args) {
 #define END                     }
 #define THIS                    args.This()
+*/
+
 #define STUB                    return ThrowException(Exception::Error(String::New("Stub - Function not implemented")));
 
 

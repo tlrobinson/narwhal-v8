@@ -1,5 +1,5 @@
 CPP       =g++
-CPPFLAGS  =
+CPPFLAGS  =-g #-save-temps
 INCLUDES  =-Iv8/include -Iinclude
 LIBS      =-lreadline -L/usr/lib -liconv
 MODULES   =$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
@@ -35,7 +35,7 @@ v8:
 	svn checkout http://v8.googlecode.com/svn/trunk/ v8
 
 clean:
-	rm -rf bin/narwhal-v8 bin/*.dylib bin/*.dSYM lib/*.dylib lib/*.dSYM
+	rm -rf bin/narwhal-v8 bin/*.dylib bin/*.dSYM lib/*.dylib lib/*.dSYM *.o *.ii *.s
 
 cleaner: clean
 	rm -rf v8/$(V8NAME)

@@ -6,6 +6,7 @@ MODULES   =$(patsubst %.cc,%.dylib,$(patsubst src/%,lib/%,$(wildcard src/*.cc)))
 
 # change to libv8_g.dylib for debug version:
 V8NAME    =libv8.dylib
+#V8NAME    =libv8_g.dylib
 V8        =v8/$(V8NAME)
 
 all: $(V8) bin/narwhal-v8 modules

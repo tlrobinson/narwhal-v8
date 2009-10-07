@@ -51,16 +51,16 @@ bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
                    bool print_result,
                    bool report_exceptions);
-v8::Handle<v8::Value> Print(const v8::Arguments& args);
-v8::Handle<v8::Value> Read(const v8::Arguments& args);
+v8::Handle<v8::Value> NW_print(const v8::Arguments& args);
+v8::Handle<v8::Value> NW_read(const v8::Arguments& args);
 v8::Handle<v8::Value> Load(const v8::Arguments& args);
 v8::Handle<v8::Value> Quit(const v8::Arguments& args);
 v8::Handle<v8::Value> Version(const v8::Arguments& args);
 v8::Handle<v8::String> ReadFile(const char* name);
 void ReportException(v8::TryCatch* handler);
 
-v8::Handle<v8::Value> IsFile(const v8::Arguments& args);
-v8::Handle<v8::Value> Require(const v8::Arguments& args);
+v8::Handle<v8::Value> NW_isFile(const v8::Arguments& args);
+v8::Handle<v8::Value> NW_requireNative(const v8::Arguments& args);
 
 int RunMain(int argc, char* argv[], char* envp[]) {
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
@@ -68,17 +68,17 @@ int RunMain(int argc, char* argv[], char* envp[]) {
     // Create a template for the global object.
     v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
     // Bind the global 'print' function to the C++ Print callback.
-    global->Set(v8::String::New("print"), v8::FunctionTemplate::New(Print));
+    global->Set(v8::String::New("print"), v8::FunctionTemplate::New(NW_print));
     // Bind the global 'read' function to the C++ Read callback.
-    global->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
+    global->Set(v8::String::New("read"), v8::FunctionTemplate::New(NW_read));
     // Bind the global 'load' function to the C++ Load callback.
     global->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
     // Bind the 'quit' function
     global->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
     // Bind the 'version' function
     global->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
-    global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(Require));
-    global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(IsFile));
+    global->Set(v8::String::New("requireNative"), v8::FunctionTemplate::New(NW_requireNative));
+    global->Set(v8::String::New("isFile"), v8::FunctionTemplate::New(NW_isFile));
 
     //v8::Debug::EnableAgent("narwhal-v8", 5858);
 
@@ -178,7 +178,7 @@ const char* ToCString(const v8::String::Utf8Value& value) {
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
-v8::Handle<v8::Value> Print(const v8::Arguments& args) {
+v8::Handle<v8::Value> NW_print(const v8::Arguments& args) {
   bool first = true;
   for (int i = 0; i < args.Length(); i++) {
     v8::HandleScope handle_scope;
@@ -200,7 +200,7 @@ v8::Handle<v8::Value> Print(const v8::Arguments& args) {
 // The callback that is invoked by v8 whenever the JavaScript 'read'
 // function is called.  This function loads the content of the file named in
 // the argument into a JavaScript string.
-v8::Handle<v8::Value> Read(const v8::Arguments& args) {
+v8::Handle<v8::Value> NW_read(const v8::Arguments& args) {
   if (args.Length() != 1) {
     return v8::ThrowException(v8::String::New("Bad parameters"));
   }
@@ -373,7 +373,7 @@ typedef v8::Handle<v8::Object> (*module_builder_t)(v8::Handle<v8::Object> __modu
 typedef v8::Handle<v8::Value> (*factory_t)(const v8::Arguments&);
 typedef const char *(*getModuleName_t)(void);
 
-FUNCTION(Require)
+FUNCTION(NW_requireNative)
 {
 	ARG_COUNT(2)
 	ARGN_UTF8(topId,0);
@@ -405,7 +405,7 @@ FUNCTION(Require)
 END
 
 
-v8::Handle<v8::Value> IsFile(const v8::Arguments& args) {
+v8::Handle<v8::Value> NW_isFile(const v8::Arguments& args) {
     v8::HandleScope handle_scope;
     v8::String::Utf8Value str(args[0]);
 

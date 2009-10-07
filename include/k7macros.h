@@ -119,7 +119,8 @@ using namespace v8;
 //                                type var = reinterpret_cast<type>(Handle<External>::Cast(_intfld)->Value());
 
 #define GET_INTERNAL(type, name, object) \
-    type name = reinterpret_cast<type>(Handle<External>::Cast(object->GetInternalField(0))->Value())
+    type name = reinterpret_cast<type>(Handle<External>::Cast(object->GetInternalField(0))->Value());
+
 #define SET_INTERNAL(object, data) \
     object->SetInternalField(0, External::New((void*)data))
 
@@ -177,7 +178,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 // CLASS MACROS
 //
 // ----------------------------------------------------------------------------
-
+/*
 #define CLASS(name)\
     { \
         v8::Handle<v8::String>            __class_name__ = v8::String::New(name); \
@@ -191,7 +192,7 @@ v8::Handle<Object> name(__VA_ARGS__) { \
 #define INTERNAL_FIELDS(i)   __object__->SetInternalFieldCount(i);
 #define HAS_INTERNAL         __object__->SetInternalFieldCount(1);
 #define END_CLASS            __module__->Set(__class_name__,__class__->GetFunction(),v8::PropertyAttribute(v8::ReadOnly|v8::DontDelete));}
-
+*/
 // ----------------------------------------------------------------------------
 //
 // MODULE MACROS
